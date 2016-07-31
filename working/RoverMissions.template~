@@ -1,0 +1,260 @@
+AGENT
+{
+	// Logo URL should be the full path to the image file for the logo (256x160)
+	logoURL = ContractPacks/spacetux/spacetux
+
+	// Logo URL is the full path to the scaled down image for thumbnails (64x40)
+	logoScaledURL = ContractPacks/spacetux/spacetux_sm
+
+	name = Space Penguins, Inc
+}
+
+
+CONTRACT_GROUP
+{
+    name = Rovers
+    minVersion = 1.5.3
+    maxSimultaneous = 2
+}
+
+CONTRACT_TYPE
+{
+    name = RoverExplore
+    title = Rover Expedition
+    group = Rovers
+    description = The science team has identified an area of scientific interest and believes that @/targetVessel on @/targetBody should be directed to investigate.
+    notes = Pilot your rover to the indicated location and perform all the science you can at that site.
+    synopsis = Drive @/targetVessel on @/targetBody to this location.
+    completedMessage = Research complete!  Good work.
+    deadline = 50
+    targetBody = @/targetVessel.CelestialBody()
+    maxSimultaneous = 1
+    rewardReputation = 1.0
+    rewardFunds = 10000.0
+    failureReputation = 5.0
+    failureFunds = 20000.0
+    advanceFunds = 0
+// reduce to 15 when releasing
+    weight = 150.0
+    DATA
+    {
+        type = Vessel
+		requiredValue = true
+        targetVessel = AllVessels().Where(v => v.VesselType() == Rover && v.IsLanded() == true).Random()
+    }
+	
+	DATA
+	{
+		type = double
+		targetRadius = @/targetBody.Radius()
+		homeRadius = HomeWorld().Radius()
+		distanceFactorTemp = @targetRadius == 0 ? 1 : @targetRadius/@homeRadius + 0.3
+		distanceFactor = @distanceFactorTemp / 2
+		TrivialMin = 3000 * @distanceFactor
+		SignificantMin = 5000 * @distanceFactor
+		ExceptionalMin = 7000 * @distanceFactor
+		TrivialMax = 4000 * @distanceFactor
+		SignificantMax = 6000 * @distanceFactor
+		ExceptionalMax = 8000 * @distanceFactor
+	}
+
+	DATA
+	{
+		type = bool
+		isTrivial = Prestige() == Trivial
+		isSignificant = Prestige() == Significant
+		isExceptional = Prestige() == Exceptional
+		hasTherm = @/targetVessel.Parts().Where(p => p == sensorThermometer).Count() > 0
+		hasBar = @/targetVessel.Parts().Where(p => p == sensorBarometer).Count() > 0
+		hasAccel = @/targetVessel.Parts().Where(p => p == sensorAccelerometer).Count() > 0
+		hasGrav = @/targetVessel.Parts().Where(p => p == sensorGravimeter).Count() > 0
+		hasGoo = @/targetVessel.Parts().Where(p => p == GooExperiment).Count() > 0
+		hasMat = @/targetVessel.Parts().Where(p => p == science_module).Count() > 0
+		hasAtmo = @/targetVessel.Parts().Where(p => p == sensorAtmosphere).Count() > 0
+		hasScientist = @/targetVessel.Crew().Where(k => k.ExperienceTrait() == "Scientist").Count() > 0
+		hasAtmosphere = @/targetBody.HasAtmosphere()
+	}
+	DATA
+	{
+		type = int
+		numWaypoints = Random(1, 5)
+	}
+	PARAMETER
+	{
+		name = Sequence
+		type = Sequence
+
+<OBJECTIVES>
+
+	}
+
+	BEHAVIOUR
+	{
+		name = WaypointGenerator
+		type = WaypointGenerator
+	
+		WAYPOINT
+		{
+			name = Rover Location 
+			hidden = true
+			
+			icon = report
+			altitude = 0.0
+			latitude = @/targetVessel.Location().Latitude()
+			longitude = @/targetVessel.Location().Longitude()
+		}
+
+		RANDOM_WAYPOINT_NEAR
+		{
+			name = Interesting Place 1
+			icon = report
+			hidden = false
+			altitude = 0.0
+			waterAllowed = false
+			nearIndex = 0
+			count = 1
+			minDistance = Prestige() == Trivial ? @/TrivialMin : Prestige() == Significant ? @/SignificantMin : @/ExceptionalMin
+			maxDistance = Prestige() == Trivial ? @/TrivialMax : Prestige() == Significant ? @/SignificantMax : @/ExceptionalMax
+		}
+		RANDOM_WAYPOINT_NEAR
+		{
+			name = Interesting Place 2
+			icon = report
+			parameter=Location1AllObjectives
+			hidden = true
+			altitude = 0.0
+			waterAllowed = false
+			nearIndex = 1
+			count = 1
+			minDistance = Prestige() == Trivial ? @/TrivialMin : Prestige() == Significant ? @/SignificantMin : @/ExceptionalMin
+			maxDistance = Prestige() == Trivial ? @/TrivialMax : Prestige() == Significant ? @/SignificantMax : @/ExceptionalMax
+		}
+		RANDOM_WAYPOINT_NEAR
+		{
+			name = Interesting Place 3
+			icon = report
+			parameter=Location2AllObjectives
+			hidden = true
+			altitude = 0.0
+			waterAllowed = false
+			nearIndex = 2
+			count = 1
+			minDistance = Prestige() == Trivial ? @/TrivialMin : Prestige() == Significant ? @/SignificantMin : @/ExceptionalMin
+			maxDistance = Prestige() == Trivial ? @/TrivialMax : Prestige() == Significant ? @/SignificantMax : @/ExceptionalMax
+		}
+		RANDOM_WAYPOINT_NEAR
+		{
+			name = Interesting Place 4
+			icon = report
+			parameter=Location3AllObjectives
+			hidden = true
+			altitude = 0.0
+			waterAllowed = false
+			nearIndex = 3
+			count = 1
+			minDistance = Prestige() == Trivial ? @/TrivialMin : Prestige() == Significant ? @/SignificantMin : @/ExceptionalMin
+			maxDistance = Prestige() == Trivial ? @/TrivialMax : Prestige() == Significant ? @/SignificantMax : @/ExceptionalMax
+		}
+		RANDOM_WAYPOINT_NEAR
+		{
+			name = Interesting Place 5
+			icon = report
+			parameter=Location4AllObjectives
+			hidden = true
+			altitude = 0.0
+			waterAllowed = false
+			nearIndex = 4
+			count = 1
+			minDistance = Prestige() == Trivial ? @/TrivialMin : Prestige() == Significant ? @/SignificantMin : @/ExceptionalMin
+			maxDistance = Prestige() == Trivial ? @/TrivialMax : Prestige() == Significant ? @/SignificantMax : @/ExceptionalMax
+		}
+		RANDOM_WAYPOINT_NEAR
+		{
+			name = Interesting Place 6
+			icon = report
+			parameter=Location5AllObjectives
+			hidden = true
+			altitude = 0.0
+			waterAllowed = false
+			nearIndex = 5
+			count = 1
+			minDistance = Prestige() == Trivial ? @/TrivialMin : Prestige() == Significant ? @/SignificantMin : @/ExceptionalMin
+			maxDistance = Prestige() == Trivial ? @/TrivialMax : Prestige() == Significant ? @/SignificantMax : @/ExceptionalMax
+		}
+
+
+
+	}
+}
+
+CONTRACT_TYPE
+{
+    name = RoverDeploy
+    title = Rover Deployment
+    group = Rovers
+    description = Much of @/targetBody is a mystery to us still.  We could learn a lot by deploying a new rover there.
+    notes = Launch a new rover to @/targetBody.  Include all the scientific instrumentation you can!
+    synopsis = Launch a new rover to @/targetBody
+    completedMessage = The rover is on location and ready for research!
+    deadline = 10000
+    targetBody = @/planet
+    maxSimultaneous = 1
+    rewardReputation = 2
+    rewardFunds = 10000
+    failureReputation = 4
+    failureFunds = 20000
+    advanceFunds = 10000
+    weight = 5.0
+
+    DATA
+    {
+        type = CelestialBody
+        planet = Prestige() == Trivial ? @/easyPlanets.Random() : Prestige() == Significant ? @/mediumPlanets.Random() : @/hardPlanets.Random()
+    }	
+	
+	DATA
+	{
+		type = CelestialBody
+		home = HomeWorld()
+	}
+	
+	DATA
+	{
+		type = List<CelestialBody>
+		easyPlanets = HomeWorld().Children()
+		mediumPlanets = OrbitedBodies().Where(b => b.HasSurface()).ExcludeAll(@easyPlanets).Exclude(HomeWorld())
+		hardPlanetsTemp = AllBodies().Where(b => b.HasSurface()).ExcludeAll(@mediumPlanets)
+		hardPlanets = @hardPlanetsTemp.ExcludeAll(@easyPlanets).Exclude(HomeWorld())
+	}
+
+	REQUIREMENT
+	{
+		name = PartModuleTypeUnlocked
+		type = PartModuleTypeUnlocked
+		partModuleType = Antenna
+		partModuleType = Wheel
+	}
+	
+	PARAMETER
+	{
+		name = NewVessel
+		type = NewVessel
+		title = Launch a new rover
+	}
+	
+	PARAMETER
+	{
+		name = ReachState
+		type = ReachState
+		situation = LANDED
+	}
+	
+	PARAMETER
+	{
+		name = VesselIsType
+		type = VesselIsType
+		vesselType = Rover
+		title = Set vessel type to Rover
+	}	
+}
+

@@ -1,0 +1,13 @@
+		RANDOM_WAYPOINT_NEAR
+		{
+			name = Interesting Place <CNT>
+			icon = report
+			hidden = false
+			altitude = 0.0
+			waterAllowed = false
+			nearIndex = <PREVCNT>
+			count = 1
+			minDistance = Prestige() == Trivial ? @/TrivialMin : Prestige() == Significant ? @/SignificantMin : @/ExceptionalMin
+			maxDistance = Prestige() == Trivial ? @/TrivialMax : Prestige() == Significant ? @/SignificantMax : @/ExceptionalMax
+		}
+

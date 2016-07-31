@@ -1,0 +1,72 @@
+CONTRACT_TYPE
+{
+	name = RoverDeploy
+	title = Rover Deployment
+	//group = Rovers
+	group = SpaceTuxGroup
+	description = Much of @/targetBody is a mystery to us still.  We could learn a lot by deploying a new rover there.
+	notes = Launch a new rover to @/targetBody.  Include all the scientific instrumentation you can!
+	synopsis = Launch a new rover to @/targetBody
+	completedMessage = The rover is on location and ready for research!
+	deadline = 10000
+	targetBody = @/planet
+	maxSimultaneous = 1
+	rewardReputation = 2
+	rewardFunds = 10000
+	failureReputation = 4
+	failureFunds = 20000
+	advanceFunds = 10000
+	weight = 5.0
+
+	DATA
+	{
+		type = CelestialBody
+		planet = Prestige() == Trivial ? @/easyPlanets.Random() : Prestige() == Significant ? @/mediumPlanets.Random() : @/hardPlanets.Random()
+	}	
+	
+	DATA
+	{
+		type = CelestialBody
+		home = HomeWorld()
+	}
+	
+	DATA
+	{
+		type = List<CelestialBody>
+		easyPlanets = HomeWorld().Children()
+		mediumPlanets = OrbitedBodies().Where(b => b.HasSurface()).ExcludeAll(@easyPlanets).Exclude(HomeWorld())
+		hardPlanetsTemp = AllBodies().Where(b => b.HasSurface()).ExcludeAll(@mediumPlanets)
+		hardPlanets = @hardPlanetsTemp.ExcludeAll(@easyPlanets).Exclude(HomeWorld())
+	}
+
+	REQUIREMENT
+	{
+		name = PartModuleTypeUnlocked
+		type = PartModuleTypeUnlocked
+		partModuleType = Antenna
+		partModuleType = Wheel
+	}
+	
+	PARAMETER
+	{
+		name = NewVessel
+		type = NewVessel
+		title = Launch a new rover
+	}
+	
+	PARAMETER
+	{
+		name = ReachState
+		type = ReachState
+		situation = LANDED
+	}
+	
+	PARAMETER
+	{
+		name = VesselIsType
+		type = VesselIsType
+		vesselType = Rover
+		title = Set vessel type to Rover
+	}	
+}
+

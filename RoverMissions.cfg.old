@@ -1,0 +1,1069 @@
+
+//CONTRACT_GROUP
+//{
+//	name = Rovers
+//	minVersion = 1.9.1
+//	maxSimultaneous = 2
+//}
+
+CONTRACT_TYPE
+{
+	name = RoverExplore
+	title = Rover Expedition
+	//group = Rovers
+	group = SpaceTuxGroup
+	description = The science team has identified an area of scientific interest and believes that @/targetVessel on @/targetBody should be directed to investigate.
+	notes = Pilot your rover to the indicated location and perform all the science you can at that site.
+	synopsis = Drive @/targetVessel on @/targetBody to this location.
+	completedMessage = Research complete!  Good work.
+	deadline = 50
+	targetBody = @/targetVessel.CelestialBody()
+	maxSimultaneous = 1
+	rewardReputation = 1.0
+	rewardFunds = 10000.0
+	failureReputation = 5.0
+	failureFunds = 20000.0
+	advanceFunds = 0
+
+	agent = Space Penguins, Inc
+
+// reduce to 15 when releasing
+	weight = 150.0
+
+	DATA
+	{
+		type = Vessel
+		requiredValue = true
+		// targetVessel = AllVessels().Where(v => v.VesselType() == Rover && v.IsLanded() == true && v.CrewCapacity() > 0).Random()
+		// targetVessel = AllVessels().Where(v => v.VesselType() == Rover && v.IsLanded() == true && v.CrewCapacity() = 0).Random()
+		targetVessel = AllVessels().Where(v => v.VesselType() == Rover && v.IsLanded() == true).Random()
+	}
+	
+	DATA
+	{
+		type = double
+		targetRadius = @/targetBody.Radius()
+		homeRadius = HomeWorld().Radius()
+		distanceFactorTemp = @targetRadius == 0 ? 1 : @targetRadius/@homeRadius + 0.3
+		//distanceFactor = @distanceFactorTemp / 2
+// Following for testing only
+		distanceFactor = 0.1
+		TrivialMin = 3000 * @distanceFactor
+		SignificantMin = 5000 * @distanceFactor
+		ExceptionalMin = 7000 * @distanceFactor
+		TrivialMax = 4000 * @distanceFactor
+		SignificantMax = 6000 * @distanceFactor
+		ExceptionalMax = 8000 * @distanceFactor
+	}
+
+	DATA
+	{
+		type = bool
+		isTrivial = Prestige() == Trivial
+		isSignificant = Prestige() == Significant
+		isExceptional = Prestige() == Exceptional
+		hasTherm = @/targetVessel.Parts().Where(p => p == sensorThermometer).Count() > 0
+		hasBar = @/targetVessel.Parts().Where(p => p == sensorBarometer).Count() > 0
+		hasAccel = @/targetVessel.Parts().Where(p => p == sensorAccelerometer).Count() > 0
+		hasGrav = @/targetVessel.Parts().Where(p => p == sensorGravimeter).Count() > 0
+		hasGoo = @/targetVessel.Parts().Where(p => p == GooExperiment).Count() > 0
+		hasMat = @/targetVessel.Parts().Where(p => p == science_module).Count() > 0
+		hasAtmo = @/targetVessel.Parts().Where(p => p == sensorAtmosphere).Count() > 0
+		hasScientist = @/targetVessel.Crew().Where(k => k.ExperienceTrait() == "Scientist").Count() > 0
+		hasAtmosphere = @/targetBody.HasAtmosphere()
+	}
+	DATA
+	{
+		type = int
+		numWaypoints = Random(1, 5)
+		calcMinCrew = @/targetVessel.CrewCapacity() > 0 ? 1:0
+	}
+	DATA
+	{
+		type = List<string>
+		a1l = [ "Marker", "Memorial", "Milestone", "Monument", "Museum", "Tree", "Battleground", "Benchmark", "Bend", "Blaze" ]
+		a2l = [ "Geature", "Gragment", "Huide", "Hill", "Mark", "Milepost", "Mountain", "Promontory", "Remnant", "Ruins" ]
+		a3l = [ "Souvenir", "Specimen", "Stone", "Survival", "Trace", "Vestige", "Vantage point", "Waypost", "Beacon", "Bellwether" ]
+		a4l = [ "Catalog", "Chapter and Verse", "Clue", "Compendium", "Directory", "Enchiridion", "Guiding Light", "Hot Lead", "Key", "Landmark" ]
+		a5l = [ "Lodestar", "Manual", "Mark", "Marker", "No-no's", "Pointer", "Sign", "Signal", "Signpost", "Telltale", "Tip-Off", "Vade Mecum" ]
+	}
+	DATA
+	{
+		type = string
+		k1 = RandomKerbalName(Male)
+		k2 = RandomKerbalName(Female)
+		k3 = RandomKerbalName(Male)
+		k4 = RandomKerbalName(Female)
+		k5 = RandomKerbalName(Female)
+
+
+		a1 = @a1l.Random()
+		a2 = @a2l.Random()
+		a3 = @a3l.Random()
+		a4 = @a4l.Random()
+		a5 = @a5l.Random()
+	}
+	PARAMETER
+	{
+		name = HasCrew
+		type = HasCrew
+		//minCrew = @/targetVessel.CrewCapacity() 
+		minCrew = @/calcMinCrew
+		REQUIREMENT
+		{
+			name = crewRequirement
+			type = Expression
+			expression = @/calcMinCrew > 0
+		}
+	}
+	PARAMETER
+	{
+		name = PartValidation
+		type = PartValidation
+
+		partModule = ModuleWheel
+	}
+	PARAMETER
+	{
+		name = Sequence
+		type = Sequence
+
+		completeInSequence = true
+		PARAMETER
+		{
+			name = ReachState
+			type = ReachState
+			failWhenUnmet = true
+			maxTerrainAltitude = 1000
+		}
+
+		hiddenParameter = Location1AllObjectives
+	
+		PARAMETER
+		{
+			name = Location1AllObjectives
+			type = Sequence
+			disableOnStateChange = false
+			title = Investigate @/a1
+			hiddenParameter = Location1AllResearch
+		
+			REQUIREMENT
+			{
+				type = Expression
+				expression = @/numWaypoints >= 1
+			}	
+			PARAMETER
+			{
+				name = Location1Arrival
+				type = VisitWaypoint
+				index = 1 
+				title = Scientist @/k1 would like you to go investigate @/a1
+			}
+			
+			PARAMETER
+			{
+				name = Location1AllResearch
+				type = All
+				title = Conduct research at the @/a1
+			
+				PARAMETER
+				{
+					name = Location1TemperatureScan
+					type = CollectScience
+					experiment = temperatureScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location1TemperatureScanRequirement
+						type = Expression
+						expression = @/hasTherm
+					}
+				}
+				PARAMETER
+				{
+					name = Location1PressureScan
+					type = CollectScience
+					experiment = barometerScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location1BarometerScanRequirement
+						type = Expression
+						expression = @/hasBar
+					}
+				}
+				PARAMETER
+				{
+					name = Location1AccelerometerScan
+					type = CollectScience
+					experiment = seismicScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location1AccelScanRequirement
+						type = Expression
+						expression = @/hasAccel
+					}
+				}
+				PARAMETER
+				{
+					name = Location1GravityScan
+					type = CollectScience
+					experiment = gravityScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location1GravScanRequirement
+						type = Expression
+						expression = @/hasGrav
+					}
+				}
+				PARAMETER
+				{
+					name = Location1CrewReport
+					type = CollectScience
+					experiment = crewReport
+					experiment = evaReport
+					experiment = surfaceSample
+					recoveryMethod = None
+					rewardScience = 0.5
+					
+					REQUIREMENT
+					{
+						name = Location1CrewReportRequirement
+						type = Expression
+						expression = @/hasScientist
+					}
+				}
+				PARAMETER
+				{
+					name = Location1Goo
+					type = CollectScience
+					experiment = mysteryGoo
+					recoveryMethod = None
+					rewardScience = 0.5
+					
+					REQUIREMENT
+					{
+						name = Location1GooRequirement
+						type = Expression
+						expression = @/hasScientist && @/hasGoo
+					}
+				}
+				PARAMETER
+				{
+					name = Location1Mat
+					type = CollectScience
+					experiment = mobileMaterialsLab
+					recoveryMethod = None
+					rewardScience = 1.0
+					
+					REQUIREMENT
+					{
+						name = Location1MatRequirement
+						type = Expression
+						expression = @/hasScientist && @/hasMat
+					}
+				}
+				PARAMETER
+				{
+					name = Location1AtmoScan
+					type = CollectScience
+					experiment = atmosphereAnalysis
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location1AtmoScanRequirement
+						type = Expression
+						expression = @/hasAtmo && @/hasAtmosphere
+					}
+				}
+			}
+		}
+	
+		hiddenParameter = Location2AllObjectives
+	
+		PARAMETER
+		{
+			name = Location2AllObjectives
+			type = Sequence
+			disableOnStateChange = false
+			title = Investigate @/a2
+			hiddenParameter = Location2AllResearch
+		
+			REQUIREMENT
+			{
+				type = Expression
+				expression = @/numWaypoints >= 2
+			}	
+			PARAMETER
+			{
+				name = Location2Arrival
+				type = VisitWaypoint
+				index = 2 
+				title = Scientist @/k2 would like you to go investigate @/a2
+			}
+			
+			PARAMETER
+			{
+				name = Location2AllResearch
+				type = All
+				title = Conduct research at the @/a2
+			
+				PARAMETER
+				{
+					name = Location2TemperatureScan
+					type = CollectScience
+					experiment = temperatureScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location2TemperatureScanRequirement
+						type = Expression
+						expression = @/hasTherm
+					}
+				}
+				PARAMETER
+				{
+					name = Location2PressureScan
+					type = CollectScience
+					experiment = barometerScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location2BarometerScanRequirement
+						type = Expression
+						expression = @/hasBar
+					}
+				}
+				PARAMETER
+				{
+					name = Location2AccelerometerScan
+					type = CollectScience
+					experiment = seismicScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location2AccelScanRequirement
+						type = Expression
+						expression = @/hasAccel
+					}
+				}
+				PARAMETER
+				{
+					name = Location2GravityScan
+					type = CollectScience
+					experiment = gravityScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location2GravScanRequirement
+						type = Expression
+						expression = @/hasGrav
+					}
+				}
+				PARAMETER
+				{
+					name = Location2CrewReport
+					type = CollectScience
+					experiment = crewReport
+					experiment = evaReport
+					experiment = surfaceSample
+					recoveryMethod = None
+					rewardScience = 0.5
+					
+					REQUIREMENT
+					{
+						name = Location2CrewReportRequirement
+						type = Expression
+						expression = @/hasScientist
+					}
+				}
+				PARAMETER
+				{
+					name = Location2Goo
+					type = CollectScience
+					experiment = mysteryGoo
+					recoveryMethod = None
+					rewardScience = 0.5
+					
+					REQUIREMENT
+					{
+						name = Location2GooRequirement
+						type = Expression
+						expression = @/hasScientist && @/hasGoo
+					}
+				}
+				PARAMETER
+				{
+					name = Location2Mat
+					type = CollectScience
+					experiment = mobileMaterialsLab
+					recoveryMethod = None
+					rewardScience = 1.0
+					
+					REQUIREMENT
+					{
+						name = Location2MatRequirement
+						type = Expression
+						expression = @/hasScientist && @/hasMat
+					}
+				}
+				PARAMETER
+				{
+					name = Location2AtmoScan
+					type = CollectScience
+					experiment = atmosphereAnalysis
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location2AtmoScanRequirement
+						type = Expression
+						expression = @/hasAtmo && @/hasAtmosphere
+					}
+				}
+			}
+		}
+	
+		hiddenParameter = Location3AllObjectives
+	
+		PARAMETER
+		{
+			name = Location3AllObjectives
+			type = Sequence
+			disableOnStateChange = false
+			title = Investigate @/a3
+			hiddenParameter = Location3AllResearch
+		
+			REQUIREMENT
+			{
+				type = Expression
+				expression = @/numWaypoints >= 3
+			}	
+			PARAMETER
+			{
+				name = Location3Arrival
+				type = VisitWaypoint
+				index = 3 
+				title = Scientist @/k3 would like you to go investigate @/a3
+			}
+			
+			PARAMETER
+			{
+				name = Location3AllResearch
+				type = All
+				title = Conduct research at the @/a3
+			
+				PARAMETER
+				{
+					name = Location3TemperatureScan
+					type = CollectScience
+					experiment = temperatureScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location3TemperatureScanRequirement
+						type = Expression
+						expression = @/hasTherm
+					}
+				}
+				PARAMETER
+				{
+					name = Location3PressureScan
+					type = CollectScience
+					experiment = barometerScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location3BarometerScanRequirement
+						type = Expression
+						expression = @/hasBar
+					}
+				}
+				PARAMETER
+				{
+					name = Location3AccelerometerScan
+					type = CollectScience
+					experiment = seismicScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location3AccelScanRequirement
+						type = Expression
+						expression = @/hasAccel
+					}
+				}
+				PARAMETER
+				{
+					name = Location3GravityScan
+					type = CollectScience
+					experiment = gravityScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location3GravScanRequirement
+						type = Expression
+						expression = @/hasGrav
+					}
+				}
+				PARAMETER
+				{
+					name = Location3CrewReport
+					type = CollectScience
+					experiment = crewReport
+					experiment = evaReport
+					experiment = surfaceSample
+					recoveryMethod = None
+					rewardScience = 0.5
+					
+					REQUIREMENT
+					{
+						name = Location3CrewReportRequirement
+						type = Expression
+						expression = @/hasScientist
+					}
+				}
+				PARAMETER
+				{
+					name = Location3Goo
+					type = CollectScience
+					experiment = mysteryGoo
+					recoveryMethod = None
+					rewardScience = 0.5
+					
+					REQUIREMENT
+					{
+						name = Location3GooRequirement
+						type = Expression
+						expression = @/hasScientist && @/hasGoo
+					}
+				}
+				PARAMETER
+				{
+					name = Location3Mat
+					type = CollectScience
+					experiment = mobileMaterialsLab
+					recoveryMethod = None
+					rewardScience = 1.0
+					
+					REQUIREMENT
+					{
+						name = Location3MatRequirement
+						type = Expression
+						expression = @/hasScientist && @/hasMat
+					}
+				}
+				PARAMETER
+				{
+					name = Location3AtmoScan
+					type = CollectScience
+					experiment = atmosphereAnalysis
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location3AtmoScanRequirement
+						type = Expression
+						expression = @/hasAtmo && @/hasAtmosphere
+					}
+				}
+			}
+		}
+	
+		hiddenParameter = Location4AllObjectives
+	
+		PARAMETER
+		{
+			name = Location4AllObjectives
+			type = Sequence
+			disableOnStateChange = false
+			title = Investigate @/a4
+			hiddenParameter = Location4AllResearch
+		
+			REQUIREMENT
+			{
+				type = Expression
+				expression = @/numWaypoints >= 4
+			}	
+			PARAMETER
+			{
+				name = Location4Arrival
+				type = VisitWaypoint
+				index = 4 
+				title = Scientist @/k4 would like you to go investigate @/a4
+			}
+			
+			PARAMETER
+			{
+				name = Location4AllResearch
+				type = All
+				title = Conduct research at the @/a4
+			
+				PARAMETER
+				{
+					name = Location4TemperatureScan
+					type = CollectScience
+					experiment = temperatureScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location4TemperatureScanRequirement
+						type = Expression
+						expression = @/hasTherm
+					}
+				}
+				PARAMETER
+				{
+					name = Location4PressureScan
+					type = CollectScience
+					experiment = barometerScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location4BarometerScanRequirement
+						type = Expression
+						expression = @/hasBar
+					}
+				}
+				PARAMETER
+				{
+					name = Location4AccelerometerScan
+					type = CollectScience
+					experiment = seismicScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location4AccelScanRequirement
+						type = Expression
+						expression = @/hasAccel
+					}
+				}
+				PARAMETER
+				{
+					name = Location4GravityScan
+					type = CollectScience
+					experiment = gravityScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location4GravScanRequirement
+						type = Expression
+						expression = @/hasGrav
+					}
+				}
+				PARAMETER
+				{
+					name = Location4CrewReport
+					type = CollectScience
+					experiment = crewReport
+					experiment = evaReport
+					experiment = surfaceSample
+					recoveryMethod = None
+					rewardScience = 0.5
+					
+					REQUIREMENT
+					{
+						name = Location4CrewReportRequirement
+						type = Expression
+						expression = @/hasScientist
+					}
+				}
+				PARAMETER
+				{
+					name = Location4Goo
+					type = CollectScience
+					experiment = mysteryGoo
+					recoveryMethod = None
+					rewardScience = 0.5
+					
+					REQUIREMENT
+					{
+						name = Location4GooRequirement
+						type = Expression
+						expression = @/hasScientist && @/hasGoo
+					}
+				}
+				PARAMETER
+				{
+					name = Location4Mat
+					type = CollectScience
+					experiment = mobileMaterialsLab
+					recoveryMethod = None
+					rewardScience = 1.0
+					
+					REQUIREMENT
+					{
+						name = Location4MatRequirement
+						type = Expression
+						expression = @/hasScientist && @/hasMat
+					}
+				}
+				PARAMETER
+				{
+					name = Location4AtmoScan
+					type = CollectScience
+					experiment = atmosphereAnalysis
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location4AtmoScanRequirement
+						type = Expression
+						expression = @/hasAtmo && @/hasAtmosphere
+					}
+				}
+			}
+		}
+	
+		hiddenParameter = Location5AllObjectives
+	
+		PARAMETER
+		{
+			name = Location5AllObjectives
+			type = Sequence
+			disableOnStateChange = false
+			title = Investigate @/a5
+			hiddenParameter = Location5AllResearch
+		
+			REQUIREMENT
+			{
+				type = Expression
+				expression = @/numWaypoints >= 5
+			}	
+			PARAMETER
+			{
+				name = Location5Arrival
+				type = VisitWaypoint
+				index = 5 
+				title = Scientist @/k5 would like you to go investigate @/a5
+			}
+			
+			PARAMETER
+			{
+				name = Location5AllResearch
+				type = All
+				title = Conduct research at the @/a5
+			
+				PARAMETER
+				{
+					name = Location5TemperatureScan
+					type = CollectScience
+					experiment = temperatureScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location5TemperatureScanRequirement
+						type = Expression
+						expression = @/hasTherm
+					}
+				}
+				PARAMETER
+				{
+					name = Location5PressureScan
+					type = CollectScience
+					experiment = barometerScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location5BarometerScanRequirement
+						type = Expression
+						expression = @/hasBar
+					}
+				}
+				PARAMETER
+				{
+					name = Location5AccelerometerScan
+					type = CollectScience
+					experiment = seismicScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location5AccelScanRequirement
+						type = Expression
+						expression = @/hasAccel
+					}
+				}
+				PARAMETER
+				{
+					name = Location5GravityScan
+					type = CollectScience
+					experiment = gravityScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location5GravScanRequirement
+						type = Expression
+						expression = @/hasGrav
+					}
+				}
+				PARAMETER
+				{
+					name = Location5CrewReport
+					type = CollectScience
+					experiment = crewReport
+					experiment = evaReport
+					experiment = surfaceSample
+					recoveryMethod = None
+					rewardScience = 0.5
+					
+					REQUIREMENT
+					{
+						name = Location5CrewReportRequirement
+						type = Expression
+						expression = @/hasScientist
+					}
+				}
+				PARAMETER
+				{
+					name = Location5Goo
+					type = CollectScience
+					experiment = mysteryGoo
+					recoveryMethod = None
+					rewardScience = 0.5
+					
+					REQUIREMENT
+					{
+						name = Location5GooRequirement
+						type = Expression
+						expression = @/hasScientist && @/hasGoo
+					}
+				}
+				PARAMETER
+				{
+					name = Location5Mat
+					type = CollectScience
+					experiment = mobileMaterialsLab
+					recoveryMethod = None
+					rewardScience = 1.0
+					
+					REQUIREMENT
+					{
+						name = Location5MatRequirement
+						type = Expression
+						expression = @/hasScientist && @/hasMat
+					}
+				}
+				PARAMETER
+				{
+					name = Location5AtmoScan
+					type = CollectScience
+					experiment = atmosphereAnalysis
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location5AtmoScanRequirement
+						type = Expression
+						expression = @/hasAtmo && @/hasAtmosphere
+					}
+				}
+			}
+		}
+	
+
+	}
+
+	BEHAVIOUR
+	{
+		name = WaypointGenerator
+		type = WaypointGenerator
+	
+		WAYPOINT
+		{
+			name = Rover Location 
+			hidden = true
+			
+			icon = report
+			altitude = 0.0
+			latitude = @/targetVessel.Location().Latitude()
+			longitude = @/targetVessel.Location().Longitude()
+		}
+
+		RANDOM_WAYPOINT_NEAR
+		{
+			name = @/a1
+			icon = report
+			
+			
+			altitude = 0.0
+			waterAllowed = false
+			nearIndex = 0
+			count = 1
+			minDistance = Prestige() == Trivial ? @/TrivialMin : Prestige() == Significant ? @/SignificantMin : @/ExceptionalMin
+			maxDistance = Prestige() == Trivial ? @/TrivialMax : Prestige() == Significant ? @/SignificantMax : @/ExceptionalMax
+		}
+		RANDOM_WAYPOINT_NEAR
+		{
+			name = @/a2
+			icon = report
+			hidden = true
+			parameter = Location1AllObjectives
+			altitude = 0.0
+			waterAllowed = false
+			nearIndex = 1
+			count = 1
+			minDistance = Prestige() == Trivial ? @/TrivialMin : Prestige() == Significant ? @/SignificantMin : @/ExceptionalMin
+			maxDistance = Prestige() == Trivial ? @/TrivialMax : Prestige() == Significant ? @/SignificantMax : @/ExceptionalMax
+		}
+		RANDOM_WAYPOINT_NEAR
+		{
+			name = @/a3
+			icon = report
+			hidden = true
+			parameter = Location2AllObjectives
+			altitude = 0.0
+			waterAllowed = false
+			nearIndex = 2
+			count = 1
+			minDistance = Prestige() == Trivial ? @/TrivialMin : Prestige() == Significant ? @/SignificantMin : @/ExceptionalMin
+			maxDistance = Prestige() == Trivial ? @/TrivialMax : Prestige() == Significant ? @/SignificantMax : @/ExceptionalMax
+		}
+		RANDOM_WAYPOINT_NEAR
+		{
+			name = @/a4
+			icon = report
+			hidden = true
+			parameter = Location3AllObjectives
+			altitude = 0.0
+			waterAllowed = false
+			nearIndex = 3
+			count = 1
+			minDistance = Prestige() == Trivial ? @/TrivialMin : Prestige() == Significant ? @/SignificantMin : @/ExceptionalMin
+			maxDistance = Prestige() == Trivial ? @/TrivialMax : Prestige() == Significant ? @/SignificantMax : @/ExceptionalMax
+		}
+		RANDOM_WAYPOINT_NEAR
+		{
+			name = @/a5
+			icon = report
+			hidden = true
+			parameter = Location4AllObjectives
+			altitude = 0.0
+			waterAllowed = false
+			nearIndex = 4
+			count = 1
+			minDistance = Prestige() == Trivial ? @/TrivialMin : Prestige() == Significant ? @/SignificantMin : @/ExceptionalMin
+			maxDistance = Prestige() == Trivial ? @/TrivialMax : Prestige() == Significant ? @/SignificantMax : @/ExceptionalMax
+		}
+
+	}
+}
+
+CONTRACT_TYPE
+{
+	name = RoverDeploy
+	title = Rover Deployment
+	//group = Rovers
+	group = SpaceTuxGroup
+	description = Much of @/targetBody is a mystery to us still.  We could learn a lot by deploying a new rover there.
+	notes = Launch a new rover to @/targetBody.  Include all the scientific instrumentation you can!
+	synopsis = Launch a new rover to @/targetBody
+	completedMessage = The rover is on location and ready for research!
+	deadline = 10000
+	targetBody = @/planet
+	maxSimultaneous = 1
+	rewardReputation = 2
+	rewardFunds = 10000
+	failureReputation = 4
+	failureFunds = 20000
+	advanceFunds = 10000
+	weight = 5.0
+
+	DATA
+	{
+		type = CelestialBody
+		planet = Prestige() == Trivial ? @/easyPlanets.Random() : Prestige() == Significant ? @/mediumPlanets.Random() : @/hardPlanets.Random()
+	}	
+	
+	DATA
+	{
+		type = CelestialBody
+		home = HomeWorld()
+	}
+	
+	DATA
+	{
+		type = List<CelestialBody>
+		easyPlanets = HomeWorld().Children()
+		mediumPlanets = OrbitedBodies().Where(b => b.HasSurface()).ExcludeAll(@easyPlanets).Exclude(HomeWorld())
+		hardPlanetsTemp = AllBodies().Where(b => b.HasSurface()).ExcludeAll(@mediumPlanets)
+		hardPlanets = @hardPlanetsTemp.ExcludeAll(@easyPlanets).Exclude(HomeWorld())
+	}
+
+	REQUIREMENT
+	{
+		name = PartModuleTypeUnlocked
+		type = PartModuleTypeUnlocked
+		partModuleType = Antenna
+		partModuleType = Wheel
+	}
+	
+	PARAMETER
+	{
+		name = NewVessel
+		type = NewVessel
+		title = Launch a new rover
+	}
+	
+	PARAMETER
+	{
+		name = ReachState
+		type = ReachState
+		situation = LANDED
+	}
+	
+	PARAMETER
+	{
+		name = VesselIsType
+		type = VesselIsType
+		vesselType = Rover
+		title = Set vessel type to Rover
+	}	
+}
+

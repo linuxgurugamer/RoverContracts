@@ -1,0 +1,52 @@
+#!/bin/bash
+
+template=RoverMissions.template
+waypoint=waypoint.template
+waypointgenerator=waypointgenerator.template
+fname=RoverMissions.cfg
+
+cnt=5
+
+
+rm -f $fname
+oIFS=$IFS
+IFS=
+while IFS=$'\n' read -r var ; do
+
+	if [[ "$var" =~ "<OBJECTIVES>" ]]; then
+		IFS=$oIFS
+		for i in `seq 1 $cnt`; do
+			p=$((i-1))
+			location="@\/a${i}"
+#			if [ $p -gt 0 ]; then
+#				prevparameter2="{"
+#				prevparameter3="parameter = Location${p}AllResearch"
+#				prevparameter4="}"
+#			fi
+			p=0
+#			sed "s/<CNT>/$i/g" <$waypoint | sed "s/<PREVPARAMETER1>/$prevparameter1/g"  | sed "s/<PREVPARAMETER2>/$prevparameter2/g"  | sed "s/<PREVPARAMETER3>/$prevparameter3/g"  | sed "s/<PREVPARAMETER4>/$prevparameter4/g" | sed "s/<PREV>/$p/g"  >>$fname
+			sed "s/<CNT>/$i/g" <$waypoint | sed "s/<LOCATION>/$location/g" | sed "s/<PREV>/$p/g"  >>$fname
+
+			#sed "s/<CNT>/$i/g" <$waypoint | sed "s/<LOCATION>/$location/g" | sed "s/<PREV>/$p/g" | sed "s/<HIDDEN>/$hidden/g" | sed "s/<PREVPARAMETER>/$prevparameter/g"       >>$fname
+		done
+		IFS=
+	else
+		if [[ "$var" =~ "<WAYPOINTGENERATOR>" ]]; then
+			IFS=$oIFS
+			hidden=""
+			prevparameter=""
+			for i in `seq 1 $cnt`; do
+				p=$((i-1))
+				location="@\/a${i}"
+				if [ $i -gt 1 ]; then
+					prevparameter="parameter = Location${p}AllObjectives"
+					hidden="hidden = true"
+				fi
+				sed "s/<CNT>/$i/g" <$waypointgenerator | sed "s/<LOCATION>/$location/g" | sed "s/<PREVCNT>/$p/g" | sed "s/<HIDDEN>/$hidden/g" | sed "s/<PREVPARAMETER>/$prevparameter/g"  >>$fname
+			done
+			IFS=
+		else
+			echo $var >>$fname
+		fi
+	fi
+done < $template

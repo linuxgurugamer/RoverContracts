@@ -1,0 +1,154 @@
+		hiddenParameter = Location<CNT>AllObjectives
+	
+		PARAMETER
+		{
+			name = Location<CNT>AllObjectives
+			type = Sequence
+			disableOnStateChange = false
+			title = Rover Expedition
+			hiddenParameter = Location<CNT>AllResearch
+		
+			REQUIREMENT
+			{
+				type = Expression
+				expression = @/numWaypoints >= <CNT>
+			}	
+			PARAMETER
+			{
+				name = Location<CNT>Arrival
+				type = VisitWaypoint
+				index = <CNT> 
+				title = Direct rover to the Interesting Place <CNT>
+			}
+			
+			PARAMETER
+			{
+				name = Location<CNT>AllResearch
+				type = All
+				title = Conduct research at the Interesting Place <CNT>
+			
+				PARAMETER
+				{
+					name = Location<CNT>TemperatureScan
+					type = CollectScience
+					experiment = temperatureScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location<CNT>TemperatureScanRequirement
+						type = Expression
+						expression = @/hasTherm
+					}
+				}
+				PARAMETER
+				{
+					name = Location<CNT>PressureScan
+					type = CollectScience
+					experiment = barometerScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location<CNT>BarometerScanRequirement
+						type = Expression
+						expression = @/hasBar
+					}
+				}
+				PARAMETER
+				{
+					name = Location<CNT>AccelerometerScan
+					type = CollectScience
+					experiment = seismicScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location<CNT>AccelScanRequirement
+						type = Expression
+						expression = @/hasAccel
+					}
+				}
+				PARAMETER
+				{
+					name = Location<CNT>GravityScan
+					type = CollectScience
+					experiment = gravityScan
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location<CNT>GravScanRequirement
+						type = Expression
+						expression = @/hasGrav
+					}
+				}
+				PARAMETER
+				{
+					name = Location<CNT>CrewReport
+					type = CollectScience
+					experiment = crewReport
+					experiment = evaReport
+					experiment = surfaceSample
+					recoveryMethod = None
+					rewardScience = 0.5
+					
+					REQUIREMENT
+					{
+						name = Location<CNT>CrewReportRequirement
+						type = Expression
+						expression = @/hasScientist
+					}
+				}
+				PARAMETER
+				{
+					name = Location<CNT>Goo
+					type = CollectScience
+					experiment = mysteryGoo
+					recoveryMethod = None
+					rewardScience = 0.5
+					
+					REQUIREMENT
+					{
+						name = Location<CNT>GooRequirement
+						type = Expression
+						expression = @/hasScientist && @/hasGoo
+					}
+				}
+				PARAMETER
+				{
+					name = Location<CNT>Mat
+					type = CollectScience
+					experiment = mobileMaterialsLab
+					recoveryMethod = None
+					rewardScience = 1.0
+					
+					REQUIREMENT
+					{
+						name = Location<CNT>MatRequirement
+						type = Expression
+						expression = @/hasScientist && @/hasMat
+					}
+				}
+				PARAMETER
+				{
+					name = Location<CNT>AtmoScan
+					type = CollectScience
+					experiment = atmosphereAnalysis
+					recoveryMethod = None
+					rewardScience = 0.25
+					
+					REQUIREMENT
+					{
+						name = Location<CNT>AtmoScanRequirement
+						type = Expression
+						expression = @/hasAtmo && @/hasAtmosphere
+					}
+				}
+			}
+		}
+	
