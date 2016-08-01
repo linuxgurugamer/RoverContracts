@@ -1,7 +1,7 @@
 #!/bin/bash
 
 INSTALLDIR=D:/Users/jbb/install/GameData/ContractPacks/Spacetux/RoverMissions
-OBJS="license.txt README.md rovercontracts.version RoverDeploy.cfg iteratorRover.cfg"
+OBJS="license.txt README.md rovercontracts.version RoverDeploy.cfg iteratorRover.cfg group.cfg"
 
 rm -fr $INSTALLDIR
 
